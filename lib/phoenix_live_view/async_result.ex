@@ -10,14 +10,14 @@ defmodule Phoenix.LiveView.AsyncResult do
     * `:loading` - The current loading state
     * `:failed` - The current failed state
     * `:result` - The successful result of the async task
-    * `:not_asked` - When true, indicates the async assign has not been initiated yet.
+    * `:idle?` - When true, indicates the async assign has not been initiated yet.
   '''
 
   defstruct ok?: false,
             loading: nil,
             failed: nil,
             result: nil,
-            not_asked: true
+            idle?: true
 
   alias Phoenix.LiveView.AsyncResult
 
@@ -31,25 +31,25 @@ defmodule Phoenix.LiveView.AsyncResult do
       true
       iex> result.ok?
       false
-      iex> result.not_asked
+      iex> result.idle?
       false
 
   """
   def loading do
-    %AsyncResult{loading: true, not_asked: false}
+    %AsyncResult{loading: true, idle?: false}
   end
 
   @doc """
   Updates the loading state.
 
-  When loading, the failed state will be reset to `nil`, and `not_asked` will be set to `false`.
+  When loading, the failed state will be reset to `nil`, and `idle?` will be set to `false`.
 
   ## Examples
 
       iex> result = AsyncResult.loading(%{my: :loading_state})
       iex> result.loading
       %{my: :loading_state}
-      iex> result.not_asked
+      iex> result.idle?
       false
       iex> result = AsyncResult.loading(result)
       iex> result.loading
@@ -57,17 +57,17 @@ defmodule Phoenix.LiveView.AsyncResult do
 
   """
   def loading(%AsyncResult{} = result) do
-    %AsyncResult{result | loading: true, failed: nil, not_asked: false}
+    %AsyncResult{result | loading: true, failed: nil, idle?: false}
   end
 
   def loading(loading_state) do
-    %AsyncResult{loading: loading_state, failed: nil, not_asked: false}
+    %AsyncResult{loading: loading_state, failed: nil, idle?: false}
   end
 
   @doc """
   Updates the loading state of an existing `async_result`.
 
-  When loading, the failed state will be reset to `nil`, and `not_asked` will be set to `false`.
+  When loading, the failed state will be reset to `nil`, and `idle?` will be set to `false`.
   If the result was previously `ok?`, both `result` and `loading` will be set.
 
   ## Examples
@@ -76,18 +76,18 @@ defmodule Phoenix.LiveView.AsyncResult do
       iex> result = AsyncResult.loading(result, %{my: :other_state})
       iex> result.loading
       %{my: :other_state}
-      iex> result.not_asked
+      iex> result.idle?
       false
 
   """
   def loading(%AsyncResult{} = result, loading_state) do
-    %AsyncResult{result | loading: loading_state, failed: nil, not_asked: false}
+    %AsyncResult{result | loading: loading_state, failed: nil, idle?: false}
   end
 
   @doc """
   Updates the failed state.
 
-  When failed, the loading state will be reset to `nil`, and `not_asked` will be set to `false`.
+  When failed, the loading state will be reset to `nil`, and `idle?` will be set to `false`.
   If the result was previously `ok?`, both `result` and `failed` will be set.
 
   ## Examples
@@ -98,12 +98,12 @@ defmodule Phoenix.LiveView.AsyncResult do
       {:exit, :boom}
       iex> result.loading
       nil
-      iex> result.not_asked
+      iex> result.idle?
       false
 
   """
   def failed(%AsyncResult{} = result, reason) do
-    %AsyncResult{result | failed: reason, loading: nil, not_asked: false}
+    %AsyncResult{result | failed: reason, loading: nil, idle?: false}
   end
 
   @doc """
@@ -111,7 +111,7 @@ defmodule Phoenix.LiveView.AsyncResult do
 
   The `:ok?` field will also be set to `true` to indicate this result has
   completed successfully at least once, regardless of future state changes.
-  The `:not_asked` field will be set to `false`.
+  The `:idle?` field will be set to `false`.
 
   ## Examples
 
@@ -120,7 +120,7 @@ defmodule Phoenix.LiveView.AsyncResult do
       true
       iex> result.result
       "initial result"
-      iex> result.not_asked
+      iex> result.idle?
       false
 
   """
@@ -130,7 +130,7 @@ defmodule Phoenix.LiveView.AsyncResult do
       loading: nil,
       ok?: true,
       result: value,
-      not_asked: false
+      idle?: false
     }
   end
 
@@ -139,7 +139,7 @@ defmodule Phoenix.LiveView.AsyncResult do
 
   The `:ok?` field will also be set to `true` to indicate this result has
   completed successfully at least once, regardless of future state changes.
-  When ok'd, the loading and failed state will be reset to `nil`, and `not_asked` will be set to `false`.
+  When ok'd, the loading and failed state will be reset to `nil`, and `idle?` will be set to `false`.
 
   ## Examples
 
@@ -151,7 +151,7 @@ defmodule Phoenix.LiveView.AsyncResult do
       "completed"
       iex> result.loading
       nil
-      iex> result.not_asked
+      iex> result.idle?
       false
 
   """
@@ -162,19 +162,19 @@ defmodule Phoenix.LiveView.AsyncResult do
         loading: nil,
         ok?: true,
         result: value,
-        not_asked: false
+        idle?: false
     }
   end
 
   @doc """
-  Creates an async result in the `not_asked` state.
+  Creates an async result in the `idle?` state.
 
   This can be useful to explicitly represent that the async assign has not been initiated yet.
 
   ## Examples
 
-      iex> result = AsyncResult.not_asked()
-      iex> result.not_asked
+      iex> result = AsyncResult.idle()
+      iex> result.idle?
       true
       iex> result.ok?
       false
@@ -184,7 +184,7 @@ defmodule Phoenix.LiveView.AsyncResult do
       nil
 
   """
-  def not_asked do
-    %AsyncResult{not_asked: true, ok?: false, loading: nil, failed: nil, result: nil}
+  def idle do
+    %AsyncResult{idle?: true, ok?: false, loading: nil, failed: nil, result: nil}
   end
 end

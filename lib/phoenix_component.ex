@@ -3110,7 +3110,8 @@ defmodule Phoenix.Component do
   ```heex
   <.async_result :let={org} assign={@org}>
     <:loading>Loading organization...</:loading>
-    <:failed :let={_failure}>there was an error loading the organization</:failed>
+    <:failed :let={_failure}>There was an error loading the organization</:failed>
+    <:idle>Nothing to load yet, press here to initiate.</:idle>
     <%= if org do %>
       <%= org.name %>
     <% else %>
@@ -3131,16 +3132,21 @@ defmodule Phoenix.Component do
   """
   @doc type: :component
   attr.(:assign, AsyncResult, required: true)
-  slot.(:loading, doc: "rendered while the assign is loading for the first time")
+  slot.(:loading, doc: "Rendered while the assign is loading for the first time")
 
   slot.(:failed,
     doc:
-      "rendered when an error or exit is caught or assign_async returns `{:error, reason}` for the first time. Receives the error as a `:let`"
+      "Rendered when an error or exit is caught or assign_async returns `{:error, reason}` for the first time. Receives the error as a `:let`"
+  )
+
+  slot.(:idle,
+    doc:
+      "Rendered when the async assign is in the idle state, meaning it hasn't been initiated yet."
   )
 
   slot.(:inner_block,
     doc:
-      "rendered when the assign is loaded successfully via `AsyncResult.ok/2`. Receives the result as a `:let`"
+      "Rendered when the assign is loaded successfully via `AsyncResult.ok/2`. Receives the result as a `:let`"
   )
 
   def async_result(%{assign: async_assign} = assigns) do
@@ -3153,6 +3159,9 @@ defmodule Phoenix.Component do
 
       async_assign.failed ->
         ~H|<%= render_slot(@failed, @assign.failed) %>|
+
+      async_assign.idle? ->
+        ~H|<%= render_slot(@idle) %>|
     end
   end
 end
